@@ -5,6 +5,7 @@ import (
 )
 
 type Repositorier interface {
+	Tasker
 }
 
 type repository struct {

@@ -1,8 +1,11 @@
 package handlers
 
-import "github.com/eragon-mdi/ksu/internal/service"
+import (
+	"github.com/eragon-mdi/ksu/internal/service"
+)
 
 type Handler interface {
+	Tasker
 }
 
 type handler struct {

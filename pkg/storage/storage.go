@@ -18,12 +18,8 @@ var (
 func Get() (*Type, error) {
 	var err error
 	once.Do(func() {
-		storage, err = fake.Init()
+		storage, err = fake.New()
 	})
-
-	// if err != nil {	// избыток
-	// 	return nil, err
-	// }
 
 	return storage, err
 }

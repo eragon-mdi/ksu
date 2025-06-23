@@ -1,14 +1,23 @@
 package fake
 
-import "errors"
+import (
+	"errors"
+	"sync"
+
+	"github.com/eragon-mdi/ksu/internal/entity"
+)
+
+// alias заглушка
+type data = entity.Task
 
 // замена БД,
 // по тз храню в "памяти сервиса", напомнило принцип fake
-type StorageType map[string]data
+type StorageType struct {
+	data sync.Map
+}
 
-var storage StorageType
+var storage *StorageType
 
-// изолировать данные и не обращаться к ним на прямую
 type CRUDer interface {
 	Creater
 	Reader
@@ -16,19 +25,17 @@ type CRUDer interface {
 	Deleter
 }
 
-// мапа ссылочный тип, но возвращаю указатель для привычного объявления в storage
-func Init() (*StorageType, error) {
+func New() (*StorageType, error) {
 	if storage != nil {
-		return &StorageType{}, errors.New("storage Init() call second time")
+		return nil, errors.New("storage Init() call second time")
 	}
 
-	storage = make(StorageType, 8*8*8)
-
-	return &storage, nil
+	return &StorageType{}, nil
 }
 
-type data struct {
-	//
-	//
-	//
-}
+var (
+	ErrKeyIsReserved = errors.New("key is used")
+	ErrBadKey        = errors.New("no content by key")
+	ErrNoData        = errors.New("no data by key")
+	ErrBadData       = errors.New("bad data type")
+)
