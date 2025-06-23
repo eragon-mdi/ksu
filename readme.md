@@ -21,8 +21,8 @@ go run cmd/task/main.go
 ```
 
 ### Дополнительно можно включить pprof для проверки течи горутин:
-1. Расскоментировать порт в `docker-compose.yaml`
-2. Расскоментировать запуск pprof в go-коде `cmd/task/main.go`
+1. Раскомментировать порт в `docker-compose.yaml`
+2. Раскомментировать запуск pprof в go-коде `cmd/task/main.go`
 3. Перейти на http://localhost:6060/debug/pprof/goroutine?debug=1
 
 ## Как использовать
