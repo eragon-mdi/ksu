@@ -14,6 +14,11 @@ docker compose down
 ```bash
 make rebuild
 ```
+3. Запуск вручную
+```bash
+go mod tidy # go mod download
+go run cmd/task/main.go
+```
 
 ### Дополнительно можно включить pprof для проверки течи горутин:
 1. Расскоментировать порт в `docker-compose.yaml`
