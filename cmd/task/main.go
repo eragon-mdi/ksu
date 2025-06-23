@@ -20,9 +20,9 @@ import (
 
 func main() {
 	// pprof
-	go func() {
-		http.ListenAndServe("0.0.0.0:6060", nil)
-	}()
+	//	go func() {
+	//		http.ListenAndServe("0.0.0.0:6060", nil)
+	//	}()
 
 	// слои
 	fakeStorage, err := storage.Get()

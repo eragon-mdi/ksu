@@ -5,11 +5,4 @@ services:
       dockerfile: ./docker/Dockerfile.app-task
     ports:
       - 8080:8080
-      - 6060:6060 # pprof
-    # если бд
-    #environment:
-    #  - name=value
-    #depends_on:
-    #  - serviceName
-    #networks:
-    #  - networkName
+    #  - 6060:6060 # pprof

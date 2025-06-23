@@ -54,7 +54,6 @@ func (s service) GetTaskResult(id string) (entity.TaskResultResponse, bool, erro
 	if err != nil {
 		return entity.TaskResultResponse{},
 			false,
-			//fmt.Errorf("service: failed to get task result %w", err)
 			errors.Join(errors.New("service: failed to get task result"), err)
 	}
 

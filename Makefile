@@ -15,5 +15,5 @@ up:
 logs:
 	docker logs ksu-app-task-1 | grep '^{.*}' | jq
 
-clean:
-	sudo docker system prune -a --volumes
+#clean:
+#	sudo docker system prune -a --volumes

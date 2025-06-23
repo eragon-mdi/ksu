@@ -5,15 +5,14 @@
 
 1. Через `docker-compose` в корне проекта
 ```bash
-docker compose up -d
+# Запуск
+docker compose build && docker compose up -d
+# Завершение
+docker compose down
 ```
-1. Сборка с помощью `make`
+2. Сборка с помощью `make`
 ```bash
 make rebuild
-```
-1. Запуск вручную
-```bash
-go run ./cmd/task/main.go
 ```
 
 ### Дополнительно можно включить pprof для проверки течи горутин:

@@ -50,9 +50,6 @@ func (t Task) Update(status int, result ...ResultType) Task {
 		res = result[0]
 	}
 
-	//t.Duration = updateDuration(status, t.StartedAt, t.Status)
-	//t.Status = status
-
 	return Task{
 		ID:        t.ID,
 		StartedAt: t.StartedAt,
@@ -62,7 +59,7 @@ func (t Task) Update(status int, result ...ResultType) Task {
 		TaskStatus: TaskStatus{
 			Status:    status,
 			CreatedAt: t.CreatedAt,
-			Duration:  t.updateDuration(), //updateDuration(status, t.StartedAt, t.Duration),
+			Duration:  t.updateDuration(),
 		},
 	}
 }
@@ -75,13 +72,7 @@ func (t Task) EntityTaskStatus() TaskStatus {
 	}
 }
 
-// func updateDuration(status int, startedAt time.Time, oldStatus ...int) time.Duration { //status int, startedAt time.Time, tD time.Duration
 func (t Task) updateDuration() time.Duration {
-	//if len(oldStatus) == 1 {
-	//	if oldStatus[0] == STATUS_COMPLETED || oldStatus[0] == STATUS_FAILED {
-	//		return updateDuration(status, startedAt)
-	//	}
-	//}
 
 	if t.Status == STATUS_RUNNING {
 		return time.Duration(time.Since(t.StartedAt).Seconds())
