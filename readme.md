@@ -1,4 +1,5 @@
 # Тестовое задание в work-mate
+[![Go Report Card](https://goreportcard.com/badge/github.com/eragon-mdi/ksu)](https://goreportcard.com/report/github.com/eragon-mdi/ksu)
 
 ## Запуск сервера
 Порт `8080`
