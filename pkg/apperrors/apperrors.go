@@ -1,6 +1,7 @@
 package apperrors
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -44,9 +45,9 @@ func CustomHTTPErrorHandler(err error, c echo.Context) {
 	}
 }
 
-func HandlePanic() {
+func HandlePanic(l *slog.Logger) {
 	if r := recover(); r != nil {
-		// TODO log
+		l.Warn("was panic", slog.Any("cause", r))
 	}
 }
 

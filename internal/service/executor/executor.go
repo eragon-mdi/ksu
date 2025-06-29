@@ -36,7 +36,6 @@ const (
 )
 
 var (
-	prefix = "executor: "
-	// ErrTaskTimeout = fmt.Errorf("%stimeout (%fmin) out ", prefix, TASK_TIMEOUT.Minutes())
+	prefix        = "executor: "
 	ErrInvalidKey = fmt.Errorf("%sinvalid key", prefix)
 )

@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	MIN_TIME   = 3 * 60 // секунды
+	MIN_TIME   = 3 * 60 // в секундах
 	DELTA_TIME = 2 * 60
 )
 

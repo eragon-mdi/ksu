@@ -16,5 +16,6 @@ RUN go build -o /usr/local/app-task ./cmd/task/main.go
 FROM alpine:3.22 AS runner
 
 COPY --from=builder /usr/local/app-task /
+COPY ./config/config.yaml /config.yaml
 
 ENTRYPOINT [ "/app-task" ]

@@ -21,9 +21,10 @@ type Tasker interface {
 // .
 func (h handler) NewTask(c echo.Context) error {
 	var taskResponse entity.TaskCreateResponse
-	l := applog.GetCtxLogger(c)
+	l := applog.GetRequestCtxLogger(c)
+	ctx := applog.CtxWithLogger(l)
 
-	taskResponse, err := h.service.CreateTask()
+	taskResponse, err := h.service.CreateTask(ctx)
 	if err != nil {
 		l.Error("failed to create task", withErr(err))
 		return echo.NewHTTPError(http.StatusInternalServerError, apperrors.ErrInternal)
@@ -39,7 +40,7 @@ func (h handler) NewTask(c echo.Context) error {
 func (h handler) DeleteTask(c echo.Context) error {
 	id := c.Param("id")
 
-	l := applog.GetCtxLogger(c).With("task_id", id)
+	l := applog.GetRequestCtxLogger(c).With("task_id", id)
 	l.Debug("deleting task")
 
 	if entity.IsValidateId(id) {
@@ -47,7 +48,8 @@ func (h handler) DeleteTask(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, apperrors.ErrInvalidID)
 	}
 
-	if err := h.service.DropTask(id); err != nil {
+	ctx := applog.CtxWithLogger(l)
+	if err := h.service.DropTask(ctx, id); err != nil {
 		l.Error("failed to delete task", withErr(err))
 		return echo.NewHTTPError(http.StatusInternalServerError, apperrors.ErrInternal)
 	}
@@ -61,7 +63,7 @@ func (h handler) DeleteTask(c echo.Context) error {
 func (h handler) GetTaskResult(c echo.Context) error {
 	id := c.Param("id")
 
-	l := applog.GetCtxLogger(c).With("key", id)
+	l := applog.GetRequestCtxLogger(c).With("key", id)
 	l.Debug("getting task result")
 
 	if entity.IsValidateId(id) {
@@ -89,7 +91,7 @@ func (h handler) GetTaskResult(c echo.Context) error {
 func (h handler) GetTaskStatus(c echo.Context) error {
 	id := c.Param("id")
 
-	l := applog.GetCtxLogger(c).With("key", id)
+	l := applog.GetRequestCtxLogger(c).With("key", id)
 	l.Debug("getting task status")
 
 	if entity.IsValidateId(id) {
@@ -111,7 +113,7 @@ func (h handler) GetTaskStatus(c echo.Context) error {
 
 // .
 func (h handler) GetAllTasks(c echo.Context) error {
-	l := applog.GetCtxLogger(c)
+	l := applog.GetRequestCtxLogger(c)
 	l.Debug("getting tasks")
 
 	tasks, err := h.service.GetTasksAll()

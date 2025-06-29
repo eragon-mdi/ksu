@@ -1,26 +1,27 @@
 package service
 
 import (
+	"context"
 	"errors"
 
 	"github.com/eragon-mdi/ksu/internal/entity"
 )
 
 type Tasker interface {
-	CreateTask() (entity.TaskCreateResponse, error)
-	DropTask(string) error
+	CreateTask(context.Context) (entity.TaskCreateResponse, error)
+	DropTask(context.Context, string) error
 	GetTaskResult(string) (entity.TaskResultResponse, bool, error)
 	GetTaskStatus(string) (entity.TaskStatusResponse, error)
 	GetTasksAll() ([]entity.TaskResponse, error)
 }
 
-func (s service) CreateTask() (entity.TaskCreateResponse, error) {
+func (s service) CreateTask(c context.Context) (entity.TaskCreateResponse, error) {
 	task := initTask()
 
 	// запсук IO bound задачи
 	taskSyncCh := make(chan struct{})
 	defer close(taskSyncCh)
-	dropTask := s.executor.StartNewTask(taskSyncCh, task)
+	dropTask := s.executor.StartNewTask(c, taskSyncCh, task)
 
 	task, err := s.repository.SaveTask(task)
 	if err != nil {
@@ -32,7 +33,7 @@ func (s service) CreateTask() (entity.TaskCreateResponse, error) {
 	return task.ResponseCreate(), nil
 }
 
-func (s service) DropTask(id string) error {
+func (s service) DropTask(c context.Context, id string) error {
 	s.executor.DropTask(id)
 
 	if err := s.repository.DeleteTask(id); err != nil {

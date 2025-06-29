@@ -4,27 +4,34 @@ package main
 
 import (
 	"log"
-	"time"
 
 	"net/http"
 	_ "net/http/pprof"
 
 	"github.com/eragon-mdi/ksu/internal/handlers"
 	"github.com/eragon-mdi/ksu/internal/repository"
+	"github.com/eragon-mdi/ksu/internal/server/routes"
 	"github.com/eragon-mdi/ksu/internal/service"
-	"github.com/eragon-mdi/ksu/pkg/apperrors"
+	"github.com/eragon-mdi/ksu/pkg/config"
 	applog "github.com/eragon-mdi/ksu/pkg/log"
+	"github.com/eragon-mdi/ksu/pkg/server"
+	"github.com/eragon-mdi/ksu/pkg/server/router"
 	"github.com/eragon-mdi/ksu/pkg/storage"
-	"github.com/labstack/echo/v4"
 )
 
 func main() {
-	// pprof
-	//	go func() {
-	//		http.ListenAndServe("0.0.0.0:6060", nil)
-	//	}()
+	//pprof
+	go func() {
+		http.ListenAndServe("0.0.0.0:6060", nil)
+	}()
 
-	// слои
+	cfg, err := config.Init()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	applog.SetDefaultBaseLogger(cfg)
+
 	fakeStorage, err := storage.Get()
 	if err != nil {
 		log.Fatal(err)
@@ -34,31 +41,14 @@ func main() {
 	handlers := handlers.New(service)
 
 	//
-	e := echo.New()
-	e.Use(applog.InitMiddlewareLogging())
-	e.HTTPErrorHandler = apperrors.CustomHTTPErrorHandler
+	router := router.New()
+	router = routes.WithTaskRoutes(router, handlers)
+	serv := server.New(router.Handler(), cfg)
 
-	//
-	taskGroup := e.Group("/task")
-	taskGroup.POST("", handlers.NewTask)
-	taskGroup.DELETE("/:id", handlers.DeleteTask)
-	taskGroup.GET("/:id/result", handlers.GetTaskResult)
-	taskGroup.GET("/:id/status", handlers.GetTaskStatus)
-	// такой ручки по ТЗ не было, но она удобна для демонстрации корректной работы сервиса
-	taskGroup.GET("", handlers.GetAllTasks)
+	go serv.Start()
 
-	if err := customHttpServer(e).ListenAndServe(); err != nil {
-		log.Fatal(err)
-	}
-}
+	server.WaitingForShutdownSignal()
 
-func customHttpServer(e *echo.Echo) *http.Server {
-	return &http.Server{
-		Addr:              "0.0.0.0:8080",
-		Handler:           e,
-		ReadTimeout:       10 * time.Second,
-		WriteTimeout:      10 * time.Second,
-		ReadHeaderTimeout: 5 * time.Second,
-		IdleTimeout:       10 * time.Second,
-	}
+	serv.GracefulShutdown()
+	// db.Close()
 }
