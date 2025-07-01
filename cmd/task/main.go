@@ -50,5 +50,4 @@ func main() {
 	server.WaitingForShutdownSignal()
 
 	serv.GracefulShutdown()
-	// db.Close()
 }
