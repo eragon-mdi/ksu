@@ -4,6 +4,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	applog "github.com/eragon-mdi/ksu/pkg/log"
 	"github.com/labstack/echo/v4"
 )
 
@@ -41,7 +42,9 @@ func CustomHTTPErrorHandler(err error, c echo.Context) {
 	}
 
 	if !c.Response().Committed {
-		c.JSON(code, echo.Map{"error": message})
+		if err := c.JSON(code, echo.Map{"error": message}); err != nil {
+			applog.GetRequestCtxLogger(c).Warn("CustomHTTPErrorHandler: failed to write response", slog.Any("cause", err))
+		}
 	}
 }
 

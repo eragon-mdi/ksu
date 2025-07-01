@@ -15,5 +15,8 @@ up:
 logs:
 	docker logs ksu-app-task-1 | grep '^{.*}' | jq
 
+lint:
+	golangci-lint run ./...
+
 #clean:
 #	sudo docker system prune -a --volumes

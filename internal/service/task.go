@@ -33,7 +33,7 @@ func (s service) CreateTask(c context.Context) (entity.TaskCreateResponse, error
 }
 
 func (s service) DropTask(c context.Context, id string) error {
-	s.executor.DropTask(id)
+	s.executor.DropTask(c, id)
 
 	if err := s.repository.DeleteTask(id); err != nil {
 		return errors.Join(ErrByDelete, err)

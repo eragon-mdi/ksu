@@ -11,6 +11,6 @@ func withErr(e error) slog.Attr {
 	return applog.UnwrapErrorChain(e)
 }
 
-func isValidateId(id string) bool {
+func isValidId(id string) bool {
 	return uuid.Validate(id) != nil
 }

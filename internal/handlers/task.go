@@ -41,7 +41,7 @@ func (h handler) DeleteTask(c echo.Context) error {
 	l := applog.GetRequestCtxLogger(c).With("task_id", id)
 	l.Debug("deleting task")
 
-	if isValidateId(id) {
+	if isValidId(id) {
 		l.Error("invalid task id")
 		return echo.NewHTTPError(http.StatusBadRequest, apperrors.ErrInvalidID)
 	}
@@ -64,7 +64,7 @@ func (h handler) GetTaskResult(c echo.Context) error {
 	l := applog.GetRequestCtxLogger(c).With("key", id)
 	l.Debug("getting task result")
 
-	if isValidateId(id) {
+	if isValidId(id) {
 		l.Error("invalid task id")
 		return echo.NewHTTPError(http.StatusBadRequest, apperrors.ErrInvalidID)
 	}
@@ -88,7 +88,7 @@ func (h handler) GetTaskStatus(c echo.Context) error {
 	l := applog.GetRequestCtxLogger(c).With("key", id)
 	l.Debug("getting task status")
 
-	if isValidateId(id) {
+	if isValidId(id) {
 		l.Error("invalid task id")
 		return echo.NewHTTPError(http.StatusBadRequest, apperrors.ErrInvalidID)
 	}

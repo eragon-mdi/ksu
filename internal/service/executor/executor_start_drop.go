@@ -11,21 +11,21 @@ import (
 
 type Executer interface {
 	StartNewTask(context.Context, chan struct{}, entity.Task) context.CancelFunc
-	DropTask(string) error
+	DropTask(context.Context, string)
 }
 
 // Дроп таски "мягкий", так как HardIOBoundWork запускается в этом же процессе и не имеет контекса (по ТЗ явно прописано не было)
 // Принцип реализации, в  executor.cancels хранятся функции отмены по контексту для каждой таски такая функция и вызывается
-func (e executor) DropTask(key string) error {
+func (e executor) DropTask(ctx context.Context, key string) {
+	l := applog.GetCtxLogger(ctx).With("key", key)
+
 	cancelCtxFunc, ok := e.cancels.Get(key)
 	if !ok {
-		return ErrInvalidKey
+		l.Warn(ErrInvalidKey.Error())
 	}
 
 	cancelCtxFunc()
 	// e.cancels.Delete(key) - вызовется в отложенной функции контекста (AfterFunc), смотреть ниже
-
-	return nil
 }
 
 // Со стартом задачи запускается 2 горутины, одна отвечает за синхронизацию и и обновление информации о состоянии задачи,

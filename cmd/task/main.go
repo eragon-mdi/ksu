@@ -22,7 +22,7 @@ import (
 func main() {
 	//pprof
 	go func() {
-		http.ListenAndServe("0.0.0.0:6060", nil)
+		http.ListenAndServe("0.0.0.0:6060", nil) //nolint:errcheck
 	}()
 
 	cfg, err := config.Init()
@@ -36,13 +36,13 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	repository := repository.New(fakeStorage)
-	service := service.New(cfg, repository)
-	handlers := handlers.New(service)
+	r := repository.New(fakeStorage)
+	s := service.New(cfg, r)
+	h := handlers.New(s)
 
 	//
 	router := router.New()
-	router = routes.WithTaskRoutes(router, handlers)
+	router = routes.WithTaskRoutes(router, h)
 	serv := server.New(router.Handler(), cfg)
 
 	go serv.Start()
