@@ -2,7 +2,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/eragon-mdi/ksu)](https://goreportcard.com/report/github.com/eragon-mdi/ksu)
 
 ## Запуск сервера
-Порт `8080`
+Порт `8080` - изменить в `.env`
 
 1. Через `docker-compose` в корне проекта
 ```bash
@@ -21,14 +21,31 @@ go mod tidy # go mod download
 go run cmd/task/main.go
 ```
 
-### Дополнительно можно включить pprof для проверки течи горутин:
-1. Раскомментировать порт в `docker-compose.yaml`
-2. Раскомментировать запуск pprof в go-коде `cmd/task/main.go`
-3. Перейти на http://localhost:6060/debug/pprof/goroutine?debug=1
+### Конфиги в `config/config.yaml` 
+```yaml
+server:                     # Данные настройки не обязательны
+  read_timeout: "5s"
+  write_timeout: "10s"
+  read_header_timeout: "2s"
+  idle_timeout: "30s"       # Время простоя соединения, важно установить любое значение, иначе потекут горутины
 
-## Как использовать
-- POST `/task`
-Старт новой задачи
+logger:
+  handler: "json"           # Формат логов: "json" или "text"
+  level: "debug"            # debug, info, warn, error
+  output: "internal"        # Пока что поддерживается только internal - во внутрений stdout контейнера
+
+app:
+  semaphore: 16             # Кол-во одновременных задач (IO-bound)
+```
+
+### Дополнительно можно использовать pprof для проверки течи горутин:
+1. Склонировать ветку `dev` и работать из неё. В ветке `main` pprof не доступен
+2. Перейти на http://localhost:6060/debug/pprof/goroutine?debug=1
+
+## Как использовать. API
+<details>
+<summary>POST <code>/task - Старт новой задачи</code></summary>
+
 ```json
 {
     "id": "607b6a8c-ca0e-4d2a-b48b-1f7dd8926e00",
@@ -36,13 +53,21 @@ go run cmd/task/main.go
     "duration": 0
 }
 ```
-- DELETE `/task/:id`
+</details>
+
+<details>
+<summary>DELETE <code>/task/:id</code></summary>
 Отмена задачи
-```json
-status code 204
+
+```http
+HTTP/1.1 204 No Content
 ```
-- GET `/task/:id/result`
+</details>
+
+<details>
+<summary>GET <code>/task/:id/result</code></summary>
 Получение результата задачи
+
 ```json
 {
     "result": "io work result = 0"
@@ -54,18 +79,33 @@ status code 204
     "problem": "task running or failed, no result, check status"
 }
 ```
-- GET `/task/:id/status`
-Получение статуса задачи. Всего 4 статуса: `created, but waiting to start`, `in process`, `completed`, `failed by io bound`
+</details>
+
+<details>
+<summary>GET <code>/task/:id/status</code></summary>
+Получение статуса задачи. Всего 4 статуса:
+<ul>
+    <li> created, but waiting to start; </li>
+    <li> in process; </li>
+    <li> completed; </li>
+    <li> failed by io bound. </li>
+</ul>
+
 ```json
 {
     "status": "in process",
     "created_at": "2025-06-23T09:21:18.261801666Z",
-    "duration": 6	// время в секундах динамическое
+    "duration": 6
 }
 ```
-- GET `/task`
+> duration - динамическое время в секундах
+</details>
+
+<details>
+<summary>GET <code>/task</code> - список всех задач, отладочная ручка</summary>
 Получение списка всех задач. По ТЗ не было, добавил для комфортной проверки работы сервиса
 Возвращает массив задач
+
 ```json
 [
     {
@@ -81,14 +121,17 @@ status code 204
         "status": "failed by io bound",
         "created_at": "2025-06-23T09:04:30.121856784Z",
         "duration": 289
+    },
+	{
+        ...
     }
-	// ...
 ]
 ```
+</details>
 
 ## Архитектура
 - `internal/handlers` Обработчики http запросов;
-- `internal/service` Содержит сервис запросов и executer, задача которого контролировать работу I/O задач;
+- `internal/service` Содержит сервис запросов, executer, задача которого контролировать работу I/O задач и task-state сервис;
 - `internal/repository` Данный репозиторий реализован под fake хранилище, так что в случае замены на реальную БД, необходимо изменить логику;
 - I/O задача-заглушка в `internal/service/executor/hardIOboundwork.go`. Задача выполняется строго 3-5 минут;
 - Семафор ограничивает кол-во одновременно исполняемых задач.
