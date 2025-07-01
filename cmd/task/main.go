@@ -5,9 +5,6 @@ package main
 import (
 	"log"
 
-	"net/http"
-	_ "net/http/pprof"
-
 	"github.com/eragon-mdi/ksu/internal/handlers"
 	"github.com/eragon-mdi/ksu/internal/repository"
 	"github.com/eragon-mdi/ksu/internal/server/routes"
@@ -20,11 +17,6 @@ import (
 )
 
 func main() {
-	//pprof
-	go func() {
-		http.ListenAndServe("0.0.0.0:6060", nil) //nolint:errcheck
-	}()
-
 	cfg, err := config.Init()
 	if err != nil {
 		log.Fatal(err)
