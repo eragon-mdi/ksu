@@ -8,3 +8,6 @@ logger:
   handler: "json"
   level: "debug"
   output: "internal"
+
+app:
+  semaphore: 16

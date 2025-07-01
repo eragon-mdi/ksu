@@ -26,7 +26,7 @@ func (s *StorageType) SelectAllInfoById(key string) (data, error) {
 	return selected, nil
 }
 
-func (s StorageType) SelectAll() []data {
+func (s *StorageType) SelectAll() []data {
 	dArr := make([]data, 0, 10)
 
 	s.data.Range(func(key, value any) bool {

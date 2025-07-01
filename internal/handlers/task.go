@@ -3,7 +3,6 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/eragon-mdi/ksu/internal/entity"
 	"github.com/eragon-mdi/ksu/pkg/apperrors"
 	applog "github.com/eragon-mdi/ksu/pkg/log"
 	"github.com/labstack/echo/v4"
@@ -20,7 +19,6 @@ type Tasker interface {
 
 // .
 func (h handler) NewTask(c echo.Context) error {
-	var taskResponse entity.TaskCreateResponse
 	l := applog.GetRequestCtxLogger(c)
 	ctx := applog.CtxWithLogger(l)
 
@@ -43,7 +41,7 @@ func (h handler) DeleteTask(c echo.Context) error {
 	l := applog.GetRequestCtxLogger(c).With("task_id", id)
 	l.Debug("deleting task")
 
-	if entity.IsValidateId(id) {
+	if isValidateId(id) {
 		l.Error("invalid task id")
 		return echo.NewHTTPError(http.StatusBadRequest, apperrors.ErrInvalidID)
 	}
@@ -66,16 +64,12 @@ func (h handler) GetTaskResult(c echo.Context) error {
 	l := applog.GetRequestCtxLogger(c).With("key", id)
 	l.Debug("getting task result")
 
-	if entity.IsValidateId(id) {
+	if isValidateId(id) {
 		l.Error("invalid task id")
 		return echo.NewHTTPError(http.StatusBadRequest, apperrors.ErrInvalidID)
 	}
 
-	taskResult, noResult, err := h.service.GetTaskResult(id)
-	if noResult {
-		l.Info("failed to get task result, task is not complete or failed")
-		return c.JSON(http.StatusAccepted, echo.Map{"problem": "task running or failed, no result, check status"})
-	}
+	taskResult, err := h.service.GetTaskResult(id)
 	if err != nil {
 		l.Error("failed to get task result", withErr(err))
 		return echo.NewHTTPError(http.StatusInternalServerError, apperrors.ErrInternal)
@@ -94,7 +88,7 @@ func (h handler) GetTaskStatus(c echo.Context) error {
 	l := applog.GetRequestCtxLogger(c).With("key", id)
 	l.Debug("getting task status")
 
-	if entity.IsValidateId(id) {
+	if isValidateId(id) {
 		l.Error("invalid task id")
 		return echo.NewHTTPError(http.StatusBadRequest, apperrors.ErrInvalidID)
 	}

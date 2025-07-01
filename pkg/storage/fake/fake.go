@@ -4,7 +4,7 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/eragon-mdi/ksu/internal/entity"
+	entity "github.com/eragon-mdi/ksu/internal/entity/task"
 )
 
 // alias заглушка

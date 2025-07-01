@@ -3,9 +3,8 @@ package executor
 import (
 	"context"
 	"log/slog"
-	"time"
 
-	"github.com/eragon-mdi/ksu/internal/entity"
+	entity "github.com/eragon-mdi/ksu/internal/entity/task"
 	"github.com/eragon-mdi/ksu/pkg/apperrors"
 	applog "github.com/eragon-mdi/ksu/pkg/log"
 )
@@ -38,7 +37,7 @@ func (e executor) DropTask(key string) error {
 // ПРИЧИНА его использования - хочется не зная реализации и проблем репозитория
 // сначала заупстить задачу, и потом уже ждать ответа сохранения задачи от репозитория
 func (e executor) StartNewTask(c context.Context, syncCh chan struct{}, task entity.Task) context.CancelFunc {
-	l := applog.GetCtxLogger(c)
+	l := applog.GetCtxLogger(c).With("task", task)
 
 	key := task.ID
 
@@ -49,25 +48,23 @@ func (e executor) StartNewTask(c context.Context, syncCh chan struct{}, task ent
 	// после сигнала отмены по контексу удаляется cancel() из мапы
 	_ = context.AfterFunc(ctx, func() {
 		e.cancels.Delete(key)
-		l.Debug("executor: afterFunc: deleting map key")
+		l.Debug("executor: afterFunc: deleting map elem func by key")
 	})
 
 	go func() {
 		defer cancel() // каждый return = дроп задачи и удаление из мапы
 
 		if err := e.sem.AcquireCtx(ctx); err != nil {
-			l.Debug("executor: go-control: task dropped before starting")
+			l.Info("executor: go-control: task dropped before starting")
 			return // задачу дропнули, пока горутина ждала очереди
 		}
 
-		task.StartedAt = time.Now()
+		task.SetStartedAtTime()
 
 		// запсук задачи
 		data := make(chan entity.ResultType, 1)
-		errCh := make(chan error, 1)
 		go func() {
 			defer apperrors.HandlePanic(l) // e.sem.Release() может запаниковать
-			defer close(errCh)
 			defer close(data)
 			defer e.sem.Release()
 
@@ -81,13 +78,10 @@ func (e executor) StartNewTask(c context.Context, syncCh chan struct{}, task ent
 			// - если задача поддерживает ctx, то можно его прокинуть, тогда и ждать ненужного результата нет необходимости
 			// - можно вынести HardIOBoundWork в отдельную компилируемую программу и вызывать как exec.CommandContext()
 			result, err := HardIOBoundWork(nil)
-			if err != nil {
-				//cancel()
-				errCh <- err
+			if err != nil { //cancel()
 				l.Error("executor: go-io-task: task completed with err", slog.Any("cause", err))
 				return
 			}
-
 			l.Debug("executor: go-io-task: task completed", slog.Any("result", result))
 
 			data <- result
@@ -102,10 +96,7 @@ func (e executor) StartNewTask(c context.Context, syncCh chan struct{}, task ent
 			return
 		}
 
-		if err := e.repository.UpdateTaskInfo(task.Update(entity.STATUS_RUNNING)); err != nil {
-			l.Error("executor: go-control: err updated task status to running", slog.Any("cause", err))
-			return
-		}
+		task = e.taskState.Advanced(ctx, task) // status running
 
 		// сохранение результата
 		select {
@@ -113,22 +104,14 @@ func (e executor) StartNewTask(c context.Context, syncCh chan struct{}, task ent
 			l.Info("executor: go-control: task dropped in running state")
 			return
 		case res, ok := <-data:
-			task.Duration = time.Duration(time.Since(task.StartedAt).Seconds())
+			task = e.taskState.Duration(task)
 
 			if !ok {
-				if err := e.repository.UpdateTaskInfo(task.Update(entity.STATUS_FAILED)); err != nil {
-					l.Error("executor: go-control: err updated task status to failed", slog.Any("cause", err))
-					return
-				}
-				err := <-errCh
-				l.Error("executor: go-control: task failed, no result", slog.Any("internal-task-err", err)) // канал закрыли, но данные не были переданы
+				e.taskState.Failed(ctx, task) // status failed
 				return
 			}
 
-			if err := e.repository.UpdateTaskInfo(task.Update(entity.STATUS_COMPLETED, res)); err != nil {
-				l.Error("executor: go-control: err updated task status to completed", slog.Any("cause", err))
-				return
-			}
+			e.taskState.Advanced(ctx, task.SetResult(res)) // status complete
 		}
 	}()
 

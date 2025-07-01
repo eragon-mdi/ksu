@@ -4,19 +4,19 @@ import (
 	"context"
 	"errors"
 
-	"github.com/eragon-mdi/ksu/internal/entity"
+	entity "github.com/eragon-mdi/ksu/internal/entity/task"
 )
 
 type Tasker interface {
 	CreateTask(context.Context) (entity.TaskCreateResponse, error)
 	DropTask(context.Context, string) error
-	GetTaskResult(string) (entity.TaskResultResponse, bool, error)
+	GetTaskResult(string) (entity.TaskResultResponse, error)
 	GetTaskStatus(string) (entity.TaskStatusResponse, error)
 	GetTasksAll() ([]entity.TaskResponse, error)
 }
 
 func (s service) CreateTask(c context.Context) (entity.TaskCreateResponse, error) {
-	task := initTask()
+	task := newTask()
 
 	// запсук IO bound задачи
 	taskSyncCh := make(chan struct{})
@@ -26,64 +26,48 @@ func (s service) CreateTask(c context.Context) (entity.TaskCreateResponse, error
 	task, err := s.repository.SaveTask(task)
 	if err != nil {
 		dropTask()
-		return entity.TaskCreateResponse{},
-			errors.Join(errors.New("service: failed to save task"), err)
+		return entity.TaskCreateResponse{}, errors.Join(ErrBySave, err)
 	}
 
-	return task.ResponseCreate(), nil
+	return task.CreateResponse(), nil
 }
 
 func (s service) DropTask(c context.Context, id string) error {
 	s.executor.DropTask(id)
 
 	if err := s.repository.DeleteTask(id); err != nil {
-		return errors.Join(errors.New("service: failed to delete task"), err)
+		return errors.Join(ErrByDelete, err)
 	}
 
 	return nil
 }
 
-// данные берём из хранилища, так как executor пишет в него же
-func (s service) GetTaskResult(id string) (entity.TaskResultResponse, bool, error) {
-	taskResult, err, taskNoCompleted := s.repository.GetTaskResultById(id)
-	if taskNoCompleted {
-		return entity.TaskResultResponse{},
-			true,
-			nil
-	}
-
+func (s service) GetTaskResult(id string) (entity.TaskResultResponse, error) {
+	task, err := s.repository.GetTaskResultById(id)
 	if err != nil {
-		return entity.TaskResultResponse{},
-			false,
-			errors.Join(errors.New("service: failed to get task result"), err)
+		return entity.TaskResultResponse{}, errors.Join(ErrGetTaskResult, err)
 	}
 
-	return taskResult, false, nil
+	task, err = s.taskState.Result(task)
+
+	return task.ResultResponse(), err
 }
 
-// данные берём из хранилища, так как executor пишет в него же
 func (s service) GetTaskStatus(id string) (entity.TaskStatusResponse, error) {
-	taskStatus, err := s.repository.GetTaskStatusById(id)
+	task, err := s.repository.GetTaskStatusById(id)
 	if err != nil {
-		return entity.TaskStatusResponse{},
-			errors.Join(errors.New("service: failed to get task status"), err)
+		return entity.TaskStatusResponse{}, errors.Join(ErrGetTaskStatus, err)
 	}
 
-	return taskStatus.Response(), nil
+	return task.StatusResponse(), nil
 }
 
 // .
 func (s service) GetTasksAll() ([]entity.TaskResponse, error) {
 	tasks, err := s.repository.GetAllTasks()
 	if err != nil {
-		return []entity.TaskResponse{},
-			errors.Join(errors.New("service: failed to get task status"), err)
+		return []entity.TaskResponse{}, errors.Join(ErrGetAllTask, err)
 	}
 
-	tasksResponse := make([]entity.TaskResponse, 0, len(tasks))
-	for _, task := range tasks {
-		tasksResponse = append(tasksResponse, task.Response())
-	}
-
-	return tasksResponse, nil
+	return s.mapTasksToResponse(tasks)
 }

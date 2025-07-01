@@ -2,10 +2,10 @@ package executor
 
 import (
 	"context"
-	"fmt"
-	"time"
 
 	"github.com/eragon-mdi/ksu/internal/repository"
+	taskstate "github.com/eragon-mdi/ksu/internal/service/task_state"
+	"github.com/eragon-mdi/ksu/pkg/config"
 	mapwithmutex "github.com/eragon-mdi/ksu/pkg/map_with_mutex"
 	"github.com/eragon-mdi/ksu/pkg/semaphor"
 )
@@ -16,26 +16,20 @@ type TaskExecutor interface {
 
 type executor struct {
 	repository repository.Repositorier
+	taskState  taskstate.TaskState
 
 	sem     semaphor.Semaphorer
 	cancels mapwithmutex.MaperWithMutex[context.CancelFunc]
 }
 
 // семафор - ограничивает кол-во задач (так как I/O bound work оевидно, что syscall)
-func New(r repository.Repositorier) TaskExecutor {
+func New(cfg config.Config, r repository.Repositorier) TaskExecutor {
+	maxSemaphoreCount := cfg.App().Semaphore()
+
 	return executor{
 		repository: r,
-		sem:        semaphor.New(MAX_SEMAPHORE),
-		cancels:    mapwithmutex.New[context.CancelFunc](MAX_SEMAPHORE),
+		taskState:  taskstate.New(r),
+		sem:        semaphor.New(maxSemaphoreCount),
+		cancels:    mapwithmutex.New[context.CancelFunc](maxSemaphoreCount),
 	}
 }
-
-const (
-	TASK_TIMEOUT  = 5 * time.Minute
-	MAX_SEMAPHORE = 16
-)
-
-var (
-	prefix        = "executor: "
-	ErrInvalidKey = fmt.Errorf("%sinvalid key", prefix)
-)

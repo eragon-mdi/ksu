@@ -50,14 +50,3 @@ func HandlePanic(l *slog.Logger) {
 		l.Warn("was panic", slog.Any("cause", r))
 	}
 }
-
-var (
-	ErrInternal        = newAppErr("internal server err")
-	ErrInvalidID       = newAppErr("invalid id")
-	ErrInvalidData     = newAppErr("invalid data")
-	ErrTaskNotFound    = newAppErr("task not found")
-	ErrInvalidTaskData = newAppErr("invalid task data")
-	ErrCantCreateTask  = newAppErr("err staring task")
-	ErrCantDeleteTask  = newAppErr("err droping task")
-	ErrTaskNoComplete  = newAppErr("task running or failed, no result, check status")
-)

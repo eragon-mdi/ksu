@@ -37,7 +37,7 @@ func main() {
 		log.Fatal(err)
 	}
 	repository := repository.New(fakeStorage)
-	service := service.New(repository)
+	service := service.New(cfg, repository)
 	handlers := handlers.New(service)
 
 	//

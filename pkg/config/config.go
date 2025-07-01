@@ -10,11 +10,13 @@ type Config interface {
 	// group cfgs by feature domains
 	Server() serverConfig
 	Logger() loggerConfig
+	App() appConfig
 }
 
 type config struct {
 	ServerCfg server `mapstructure:"server"`
 	LoggerCfg logger `mapstructure:"logger"`
+	AppCfg    app    `mapstructure:"app"`
 	// add other config entities
 }
 
@@ -48,7 +50,12 @@ func (c config) Logger() loggerConfig {
 	return &c.LoggerCfg
 }
 
+func (c config) App() appConfig {
+	return &c.AppCfg
+}
+
 func setDefault(v *viper.Viper) {
 	serverSetDefaultRoutes(v)
 	loggerSetDefaultRoutes(v)
+	appSetDefaultRoutes(v)
 }

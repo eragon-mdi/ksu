@@ -12,7 +12,7 @@ type loggerConfig interface {
 	Output() string
 }
 
-var loggerTag = "logger"
+const loggerTag = "logger"
 
 type logger struct {
 	HandlerType string `mapstructure:"handler"`

@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-var serverTag = "server"
+const serverTag = "server"
 
 type server struct {
 	Address      string        `mapstructure:"addr"`

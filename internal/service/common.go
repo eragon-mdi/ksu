@@ -1,19 +1,23 @@
 package service
 
 import (
-	"time"
-
-	"github.com/eragon-mdi/ksu/internal/entity"
+	entity "github.com/eragon-mdi/ksu/internal/entity/task"
 	"github.com/google/uuid"
 )
 
-func initTask() entity.Task {
-	return entity.Task{
-		ID: uuid.NewString(),
-		TaskStatus: entity.TaskStatus{
-			Status:    entity.STATUS_PENDING,
-			CreatedAt: time.Now(),
-			Duration:  0,
-		},
+func newTask() entity.Task {
+	return entity.New(uuid.NewString())
+}
+
+func (s service) mapTasksToResponse(tasks []entity.Task) ([]entity.TaskResponse, error) {
+	if len(tasks) < 1 {
+		return []entity.TaskResponse{}, ErrGetTasks
 	}
+
+	res := make([]entity.TaskResponse, 0, len(tasks))
+	for _, task := range tasks {
+		task = s.taskState.Duration(task)
+		res = append(res, task.Response())
+	}
+	return res, nil
 }

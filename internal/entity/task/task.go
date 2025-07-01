@@ -1,6 +1,10 @@
 package entity
 
-import "time"
+import (
+	"time"
+)
+
+type TaskStatusType = int
 
 const (
 	_ = iota
@@ -49,4 +53,15 @@ type TaskResponse struct {
 	Status    string        `json:"status"`
 	CreatedAt time.Time     `json:"created_at"`
 	Duration  time.Duration `json:"duration"`
+}
+
+func New(id string) Task {
+	return Task{
+		ID: id,
+		TaskStatus: TaskStatus{
+			Status:    STATUS_PENDING,
+			CreatedAt: time.Now(),
+			Duration:  0,
+		},
+	}
 }
