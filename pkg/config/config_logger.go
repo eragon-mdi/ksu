@@ -6,6 +6,14 @@ import (
 	"github.com/spf13/viper"
 )
 
+func init() {
+	configSetters = append(configSetters, loggerSetDefault)
+}
+
+func (c config) Logger() loggerConfig {
+	return &c.LoggerCfg
+}
+
 type loggerConfig interface {
 	Handler() string
 	Level() slog.Level
@@ -20,7 +28,7 @@ type logger struct {
 	OutputDir   string `mapstructure:"output"`
 }
 
-func loggerSetDefaultRoutes(v *viper.Viper) {
+func loggerSetDefault(v *viper.Viper) {
 	v.SetDefault(loggerTag+".handler", "text")
 	v.SetDefault(loggerTag+".level", "error")
 	v.SetDefault(loggerTag+".output", "internal")

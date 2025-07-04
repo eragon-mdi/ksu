@@ -5,3 +5,23 @@ services:
       dockerfile: ./docker/Dockerfile.app-task
     ports:
       - ${SERVER_PORT}:8080
+    depends_on:
+      - clickhouse
+      
+  clickhouse:
+    image: clickhouse/clickhouse-server:25.5-alpine
+    environment:
+      CLICKHOUSE_USER: ksu
+      CLICKHOUSE_PASSWORD: secret
+    ports:
+      - 8123:8123
+      - 9000:9000
+  
+  tabix:
+    image: spoonest/clickhouse-tabix-web-client
+    container_name: tabix
+    restart: unless-stopped
+    ports:
+      - 8124:80
+    depends_on:
+      - clickhouse

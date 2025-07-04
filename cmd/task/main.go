@@ -11,6 +11,7 @@ import (
 	"github.com/eragon-mdi/ksu/internal/service"
 	"github.com/eragon-mdi/ksu/pkg/config"
 	applog "github.com/eragon-mdi/ksu/pkg/log"
+	"github.com/eragon-mdi/ksu/pkg/log/clickhouse"
 	"github.com/eragon-mdi/ksu/pkg/server"
 	"github.com/eragon-mdi/ksu/pkg/server/router"
 	"github.com/eragon-mdi/ksu/pkg/storage"
@@ -22,7 +23,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	applog.SetDefaultBaseLogger(cfg)
+	clickH := clickhouse.New(cfg)
+	applog.SetDefaultBaseLogger(cfg, clickH)
 
 	fakeStorage, err := storage.Get()
 	if err != nil {
@@ -42,4 +44,5 @@ func main() {
 	server.WaitingForShutdownSignal()
 
 	serv.GracefulShutdown()
+	clickH.GracefulShutdown()
 }
