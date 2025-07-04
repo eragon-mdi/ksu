@@ -7,6 +7,14 @@ import (
 	"github.com/spf13/viper"
 )
 
+func init() {
+	configSetters = append(configSetters, serverSetDefault)
+}
+
+func (c config) Server() serverConfig {
+	return &c.ServerCfg
+}
+
 const serverTag = "server"
 
 type server struct {
@@ -27,7 +35,7 @@ type serverConfig interface {
 	IdleTimeout() time.Duration
 }
 
-func serverSetDefaultRoutes(v *viper.Viper) {
+func serverSetDefault(v *viper.Viper) {
 	v.SetDefault(serverTag+".addr", "0.0.0.0")
 	v.SetDefault(serverTag+".port", 8080)
 	v.SetDefault(serverTag+".read_timeout", "5s")

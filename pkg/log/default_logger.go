@@ -1,6 +1,7 @@
 package applog
 
 import (
+	"io"
 	"log"
 	"log/slog"
 	"os"
@@ -13,16 +14,16 @@ const (
 	LoggerHandlerType_TEXT = "text"
 )
 
-var loggerTypes = map[string]func(f *os.File, ho slog.HandlerOptions) *slog.Logger{
-	LoggerHandlerType_JSON: func(f *os.File, ho slog.HandlerOptions) *slog.Logger {
-		return slog.New(slog.NewJSONHandler(f, &ho))
+var loggerTypes = map[string]func(w io.Writer, ho slog.HandlerOptions) *slog.Logger{
+	LoggerHandlerType_JSON: func(w io.Writer, ho slog.HandlerOptions) *slog.Logger {
+		return slog.New(slog.NewJSONHandler(w, &ho))
 	},
-	LoggerHandlerType_TEXT: func(f *os.File, ho slog.HandlerOptions) *slog.Logger {
-		return slog.New(slog.NewTextHandler(f, &ho))
+	LoggerHandlerType_TEXT: func(w io.Writer, ho slog.HandlerOptions) *slog.Logger {
+		return slog.New(slog.NewTextHandler(w, &ho))
 	},
 }
 
-func SetDefaultBaseLogger(cfg config.Config) {
+func SetDefaultBaseLogger(cfg config.Config, w ...io.Writer) {
 	logCfg := cfg.Logger()
 
 	hOpt := slog.HandlerOptions{
@@ -30,10 +31,10 @@ func SetDefaultBaseLogger(cfg config.Config) {
 		Level:     logCfg.Level(),
 	}
 
-	var file *os.File
-	if logCfg.Output() == "internal" {
-		file = os.Stdout
-	} // TODO add other cases // with map
+	var file io.Writer = os.Stdout
+	if len(w) == 1 {
+		file = w[0]
+	}
 
 	getLogger, ok := loggerTypes[logCfg.Handler()]
 	if !ok {

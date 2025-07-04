@@ -11,12 +11,14 @@ type Config interface {
 	Server() serverConfig
 	Logger() loggerConfig
 	App() appConfig
+	ClickHouse() chConfig
 }
 
 type config struct {
-	ServerCfg server `mapstructure:"server"`
-	LoggerCfg logger `mapstructure:"logger"`
-	AppCfg    app    `mapstructure:"app"`
+	ServerCfg     server     `mapstructure:"server"`
+	LoggerCfg     logger     `mapstructure:"logger"`
+	AppCfg        app        `mapstructure:"app"`
+	ClickHouseCfg clickhouse `mapstructure:"clickhouse"`
 	// add other config entities
 }
 
@@ -40,22 +42,4 @@ func Init() (Config, error) {
 	log.Debug("set configs:", slog.Any("conf", cfg))
 
 	return &cfg, nil
-}
-
-func (c config) Server() serverConfig {
-	return &c.ServerCfg
-}
-
-func (c config) Logger() loggerConfig {
-	return &c.LoggerCfg
-}
-
-func (c config) App() appConfig {
-	return &c.AppCfg
-}
-
-func setDefault(v *viper.Viper) {
-	serverSetDefaultRoutes(v)
-	loggerSetDefaultRoutes(v)
-	appSetDefaultRoutes(v)
 }

@@ -7,7 +7,15 @@ server:
 logger:
   handler: "json"
   level: "debug"
-  output: "internal"
 
 app:
   semaphore: 16
+
+clickhouse:
+  address: clickhouse:9000
+  username: ksu
+  password: secret
+  try_connection_perod: "3s"
+  connection_attempts: 5
+  butch_size: 10
+  butch_inteval: "1m"
