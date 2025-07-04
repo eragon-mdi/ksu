@@ -30,7 +30,7 @@ func (r repository) SaveTask(task entity.Task) (entity.Task, error) {
 func (r repository) DeleteTask(id string) error {
 	err := r.storage.DeleteTaskById(id)
 	if err != nil {
-		return errors.Join(ErrDeleteTask, err)
+		return errors.Join(ErrDeleteTask, NotFound, err)
 	}
 	return err
 }

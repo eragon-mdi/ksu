@@ -22,6 +22,7 @@ func (e executor) DropTask(ctx context.Context, key string) {
 	cancelCtxFunc, ok := e.cancels.Get(key)
 	if !ok {
 		l.Warn(ErrInvalidKey.Error())
+		return
 	}
 
 	cancelCtxFunc()

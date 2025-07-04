@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/eragon-mdi/ksu/pkg/apperrors"
@@ -41,7 +42,7 @@ func (h handler) DeleteTask(c echo.Context) error {
 	l := applog.GetRequestCtxLogger(c).With("task_id", id)
 	l.Debug("deleting task")
 
-	if isValidId(id) {
+	if !validateId(id) {
 		l.Error("invalid task id")
 		return echo.NewHTTPError(http.StatusBadRequest, apperrors.ErrInvalidID)
 	}
@@ -49,12 +50,16 @@ func (h handler) DeleteTask(c echo.Context) error {
 	ctx := applog.CtxWithLogger(l)
 	if err := h.service.DropTask(ctx, id); err != nil {
 		l.Error("failed to delete task", withErr(err))
+
+		if errors.Is(err, apperrors.NotFound) {
+			return echo.NewHTTPError(http.StatusNotFound, apperrors.NotFound)
+		}
 		return echo.NewHTTPError(http.StatusInternalServerError, apperrors.ErrInternal)
 	}
 
 	l.Debug("task deleted OK")
 
-	return c.JSON(http.StatusNoContent, nil)
+	return c.NoContent(http.StatusNoContent)
 }
 
 // .
@@ -64,7 +69,7 @@ func (h handler) GetTaskResult(c echo.Context) error {
 	l := applog.GetRequestCtxLogger(c).With("key", id)
 	l.Debug("getting task result")
 
-	if isValidId(id) {
+	if !validateId(id) {
 		l.Error("invalid task id")
 		return echo.NewHTTPError(http.StatusBadRequest, apperrors.ErrInvalidID)
 	}
@@ -88,7 +93,7 @@ func (h handler) GetTaskStatus(c echo.Context) error {
 	l := applog.GetRequestCtxLogger(c).With("key", id)
 	l.Debug("getting task status")
 
-	if isValidId(id) {
+	if !validateId(id) {
 		l.Error("invalid task id")
 		return echo.NewHTTPError(http.StatusBadRequest, apperrors.ErrInvalidID)
 	}

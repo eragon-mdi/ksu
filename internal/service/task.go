@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	entity "github.com/eragon-mdi/ksu/internal/entity/task"
+	"github.com/eragon-mdi/ksu/pkg/apperrors"
 )
 
 type Tasker interface {
@@ -36,6 +37,9 @@ func (s service) DropTask(c context.Context, id string) error {
 	s.executor.DropTask(c, id)
 
 	if err := s.repository.DeleteTask(id); err != nil {
+		if errors.Is(err, apperrors.NotFound) {
+			return errors.Join(apperrors.NotFound, err)
+		}
 		return errors.Join(ErrByDelete, err)
 	}
 
