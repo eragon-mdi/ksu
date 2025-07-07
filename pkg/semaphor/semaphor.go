@@ -2,7 +2,7 @@ package semaphor
 
 import "context"
 
-type Semaphorer interface {
+type Semaphor interface {
 	AcquireCtx(context.Context) error
 	Release() // может запаниковать!!!
 }
@@ -11,7 +11,7 @@ type semaphor struct {
 	tickets chan struct{}
 }
 
-func New(capacity int) Semaphorer {
+func New(capacity int) Semaphor {
 	return &semaphor{
 		tickets: make(chan struct{}, capacity),
 	}

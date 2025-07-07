@@ -17,7 +17,7 @@ func (c config) Logger() loggerConfig {
 type loggerConfig interface {
 	Handler() string
 	Level() slog.Level
-	Output() string
+	WriteInternal() bool
 }
 
 const loggerTag = "logger"
@@ -25,13 +25,13 @@ const loggerTag = "logger"
 type logger struct {
 	HandlerType string `mapstructure:"handler"`
 	Loglevel    string `mapstructure:"level"`
-	OutputDir   string `mapstructure:"output"`
+	OutputDir   bool   `mapstructure:"output_internal"`
 }
 
 func loggerSetDefault(v *viper.Viper) {
 	v.SetDefault(loggerTag+".handler", "text")
 	v.SetDefault(loggerTag+".level", "error")
-	v.SetDefault(loggerTag+".output", "internal")
+	v.SetDefault(loggerTag+".output_internal", true)
 }
 
 func (l logger) Handler() string {
@@ -55,6 +55,6 @@ func (l *logger) Level() slog.Level {
 	return level
 }
 
-func (l logger) Output() string {
+func (l logger) WriteInternal() bool {
 	return l.OutputDir
 }

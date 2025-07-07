@@ -2,20 +2,21 @@ package taskstate
 
 import (
 	entity "github.com/eragon-mdi/ksu/internal/entity/task"
-	"github.com/eragon-mdi/ksu/internal/repository"
+	"github.com/eragon-mdi/ksu/internal/service"
+	"github.com/eragon-mdi/ksu/internal/service/executor"
 )
 
-type TaskState interface {
-	StateTransitioner
-	TaskUtils
+type taskStateImplement interface {
+	service.TaskState
+	executor.TaskState
 }
 
 type taskState struct {
-	repository  repository.Repositorier
+	repository  Repository
 	transitions map[entity.TaskStatusType]entity.TaskStatusType
 }
 
-func New(r repository.Repositorier) TaskState {
+func New(r Repository) taskStateImplement {
 	return &taskState{
 		repository: r,
 		transitions: map[entity.TaskStatusType]entity.TaskStatusType{

@@ -1,21 +1,22 @@
 package handlers
 
 import (
+	"context"
 	"errors"
 	"net/http"
 
+	entity "github.com/eragon-mdi/ksu/internal/entity/task"
 	"github.com/eragon-mdi/ksu/pkg/apperrors"
 	applog "github.com/eragon-mdi/ksu/pkg/log"
 	"github.com/labstack/echo/v4"
 )
 
-type Tasker interface {
-	NewTask(c echo.Context) error
-	DeleteTask(c echo.Context) error
-	GetTaskResult(c echo.Context) error
-	GetTaskStatus(c echo.Context) error
-
-	GetAllTasks(c echo.Context) error
+type Service interface {
+	CreateTask(context.Context) (entity.TaskCreateResponse, error)
+	DropTask(context.Context, string) error
+	GetTaskResult(string) (entity.TaskResultResponse, error)
+	GetTaskStatus(string) (entity.TaskStatusResponse, error)
+	GetTasksAll() ([]entity.TaskResponse, error)
 }
 
 // .

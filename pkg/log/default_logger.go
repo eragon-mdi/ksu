@@ -32,8 +32,12 @@ func SetDefaultBaseLogger(cfg config.Config, w ...io.Writer) {
 	}
 
 	var file io.Writer = os.Stdout
-	if len(w) == 1 {
-		file = w[0]
+	if !logCfg.WriteInternal() {
+		if len(w) == 1 {
+			file = w[0]
+		} else {
+			log.Fatal("no writer in arguments")
+		}
 	}
 
 	getLogger, ok := loggerTypes[logCfg.Handler()]

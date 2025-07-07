@@ -8,12 +8,23 @@ import (
 	"github.com/eragon-mdi/ksu/pkg/apperrors"
 )
 
-type Tasker interface {
-	CreateTask(context.Context) (entity.TaskCreateResponse, error)
-	DropTask(context.Context, string) error
-	GetTaskResult(string) (entity.TaskResultResponse, error)
-	GetTaskStatus(string) (entity.TaskStatusResponse, error)
-	GetTasksAll() ([]entity.TaskResponse, error)
+type Executer interface {
+	StartNewTask(context.Context, chan struct{}, entity.Task) context.CancelFunc
+	DropTask(context.Context, string)
+}
+
+type TaskState interface {
+	Result(entity.Task) (entity.Task, error)
+	Duration(entity.Task) entity.Task
+}
+
+type Repository interface {
+	SaveTask(entity.Task) (entity.Task, error)
+	DeleteTask(string) error
+	GetTaskResultById(string) (entity.Task, error)
+	GetTaskStatusById(string) (entity.Task, error)
+
+	GetAllTasks() ([]entity.Task, error)
 }
 
 func (s service) CreateTask(c context.Context) (entity.TaskCreateResponse, error) {

@@ -10,9 +10,8 @@ import (
 	applog "github.com/eragon-mdi/ksu/pkg/log"
 )
 
-type TaskUtils interface {
-	Result(entity.Task) (entity.Task, error)
-	Duration(entity.Task) entity.Task
+type Repository interface {
+	UpdateTaskInfo(entity.Task) error
 }
 
 var statusMapResult = map[int]any{

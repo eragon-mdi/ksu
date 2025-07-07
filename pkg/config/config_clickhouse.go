@@ -33,8 +33,8 @@ type clickhouse struct {
 	Database          string        `mapstructure:"database"`
 	Username          string        `mapstructure:"username"`
 	Password          string        `mapstructure:"password"`
-	ButchCapacity     int           `mapstructure:"butch_size"`
-	ButchTimerInteval time.Duration `mapstructure:"butch_inteval"`
+	ButchCapacity     int           `mapstructure:"batch_size"`
+	ButchTimerInteval time.Duration `mapstructure:"batch_inteval"`
 
 	TryConncetionPeriod time.Duration `mapstructure:"try_connection_perod"`
 	ConnectionAttempts  int           `mapstructure:"connection_attempts"`
@@ -45,8 +45,8 @@ func clickHouseSetDefault(v *viper.Viper) {
 	v.SetDefault(clickHouseTag+".database", "default")
 	v.SetDefault(clickHouseTag+".username", "user")
 	v.SetDefault(clickHouseTag+".password", "password")
-	v.SetDefault(clickHouseTag+".butch_size", 100)
-	v.SetDefault(clickHouseTag+".butch_inteval", 2*time.Minute)
+	v.SetDefault(clickHouseTag+".batch_size", 100)
+	v.SetDefault(clickHouseTag+".batch_inteval", 2*time.Minute)
 
 	v.SetDefault(clickHouseTag+".try_connection_perod", 3*time.Second)
 	v.SetDefault(clickHouseTag+".connection_attempts", 5)

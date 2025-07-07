@@ -1,27 +1,25 @@
 package service
 
 import (
-	"github.com/eragon-mdi/ksu/internal/repository"
-	"github.com/eragon-mdi/ksu/internal/service/executor"
-	taskstate "github.com/eragon-mdi/ksu/internal/service/task_state"
+	"github.com/eragon-mdi/ksu/internal/handlers"
 	"github.com/eragon-mdi/ksu/pkg/config"
 )
 
-type Servicer interface {
-	Tasker
+type serviceImplement interface {
+	handlers.Service
 }
 
 type service struct {
-	repository repository.Repositorier
+	repository Repository
 
-	executor  executor.TaskExecutor
-	taskState taskstate.TaskState
+	executor  Executer
+	taskState TaskState
 }
 
-func New(cfg config.Config, r repository.Repositorier) Servicer {
-	return service{
+func New(cfg config.Config, r Repository, e Executer, tu TaskState) serviceImplement {
+	return &service{
 		repository: r,
-		executor:   executor.New(cfg, r),
-		taskState:  taskstate.New(r),
+		executor:   e,
+		taskState:  tu,
 	}
 }

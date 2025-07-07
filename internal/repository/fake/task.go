@@ -1,4 +1,4 @@
-package repository
+package fakerepo
 
 import (
 	"errors"
@@ -7,18 +7,15 @@ import (
 	entity "github.com/eragon-mdi/ksu/internal/entity/task"
 )
 
-type Tasker interface {
-	SaveTask(entity.Task) (entity.Task, error)
-	DeleteTask(string) error
-	GetTaskResultById(string) (entity.Task, error)
-	GetTaskStatusById(string) (entity.Task, error)
-
-	UpdateTaskInfo(entity.Task) error
-
-	GetAllTasks() ([]entity.Task, error)
+type FakeStorage interface {
+	InsertTaskWithReturns(string, entity.Task) (entity.Task, error)
+	DeleteTaskById(string) error
+	SelectAllInfoById(string) (entity.Task, error)
+	UpdateTask(entity.Task) error
+	SelectAll() []entity.Task
 }
 
-func (r repository) SaveTask(task entity.Task) (entity.Task, error) {
+func (r fakeRepository) SaveTask(task entity.Task) (entity.Task, error) {
 	task, err := r.storage.InsertTaskWithReturns(task.ID, task)
 	if err != nil {
 		return task, errors.Join(ErrInsertTask, err)
@@ -27,7 +24,7 @@ func (r repository) SaveTask(task entity.Task) (entity.Task, error) {
 	return task, nil
 }
 
-func (r repository) DeleteTask(id string) error {
+func (r fakeRepository) DeleteTask(id string) error {
 	err := r.storage.DeleteTaskById(id)
 	if err != nil {
 		return errors.Join(ErrDeleteTask, NotFound, err)
@@ -35,7 +32,7 @@ func (r repository) DeleteTask(id string) error {
 	return err
 }
 
-func (r repository) GetTaskResultById(id string) (entity.Task, error) {
+func (r fakeRepository) GetTaskResultById(id string) (entity.Task, error) {
 	task, err := r.storage.SelectAllInfoById(id)
 	if err != nil {
 		return entity.Task{}, errors.Join(ErrGetResultByID, err)
@@ -44,7 +41,7 @@ func (r repository) GetTaskResultById(id string) (entity.Task, error) {
 	return task, nil
 }
 
-func (r repository) GetTaskStatusById(id string) (entity.Task, error) {
+func (r fakeRepository) GetTaskStatusById(id string) (entity.Task, error) {
 	task, err := r.storage.SelectAllInfoById(id)
 	if err != nil {
 		return entity.Task{}, errors.Join(ErrGetStatusByID, err)
@@ -53,7 +50,7 @@ func (r repository) GetTaskStatusById(id string) (entity.Task, error) {
 	return task, nil
 }
 
-func (r repository) UpdateTaskInfo(task entity.Task) error {
+func (r fakeRepository) UpdateTaskInfo(task entity.Task) error {
 	err := r.storage.UpdateTask(task)
 	if err != nil {
 		return errors.Join(fmt.Errorf("%w (%d %v)\n%w", ErrUpdateTaskInfo, task.Status, task.Result, err))
@@ -62,6 +59,6 @@ func (r repository) UpdateTaskInfo(task entity.Task) error {
 }
 
 // .
-func (r repository) GetAllTasks() ([]entity.Task, error) {
+func (r fakeRepository) GetAllTasks() ([]entity.Task, error) {
 	return r.storage.SelectAll(), nil
 }

@@ -9,9 +9,11 @@ import (
 	applog "github.com/eragon-mdi/ksu/pkg/log"
 )
 
-type Executer interface {
-	StartNewTask(context.Context, chan struct{}, entity.Task) context.CancelFunc
-	DropTask(context.Context, string)
+type TaskState interface {
+	Advanced(context.Context, entity.Task) entity.Task
+	Failed(context.Context, entity.Task) entity.Task
+	Result(entity.Task) (entity.Task, error)
+	Duration(entity.Task) entity.Task
 }
 
 // Дроп таски "мягкий", так как HardIOBoundWork запускается в этом же процессе и не имеет контекса (по ТЗ явно прописано не было)
