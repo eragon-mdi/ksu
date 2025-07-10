@@ -1,19 +1,17 @@
 package handlers
 
-import (
-	"github.com/eragon-mdi/ksu/internal/service"
-)
+import "github.com/eragon-mdi/ksu/internal/server/routes"
 
-type Handler interface {
-	Tasker
+type handlerImplement interface {
+	routes.Handler
 }
 
 type handler struct {
-	service service.Servicer
+	service Service
 }
 
-func New(s service.Servicer) Handler {
-	return handler{
+func New(s Service) handlerImplement {
+	return &handler{
 		service: s,
 	}
 }

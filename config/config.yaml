@@ -5,8 +5,9 @@ server:
   idle_timeout: "30s"
 
 logger:
-  handler: "json"
-  level: "debug"
+  handler: json
+  level: debug
+  output_internal: false
 
 app:
   semaphore: 16
@@ -17,5 +18,16 @@ clickhouse:
   password: secret
   try_connection_perod: "3s"
   connection_attempts: 5
-  butch_size: 10
-  butch_inteval: "1m"
+  batch_size: 10
+  batch_inteval: "1m"
+
+storage:
+  type: postgres # internal | postgres
+  host: db
+  port: 5432
+  user: app
+  password: 123
+  name: app_db
+  ssl_mode: disable
+  need_migrate: true
+  migaret_src: file:///migrate

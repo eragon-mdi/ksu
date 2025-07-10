@@ -12,6 +12,7 @@ type Config interface {
 	Logger() loggerConfig
 	App() appConfig
 	ClickHouse() chConfig
+	Storage() stroageCfg
 }
 
 type config struct {
@@ -19,6 +20,7 @@ type config struct {
 	LoggerCfg     logger     `mapstructure:"logger"`
 	AppCfg        app        `mapstructure:"app"`
 	ClickHouseCfg clickhouse `mapstructure:"clickhouse"`
+	StorageCfg    storage    `mapstructure:"storage"`
 	// add other config entities
 }
 

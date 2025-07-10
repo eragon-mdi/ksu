@@ -1,5 +1,3 @@
-// Михайлюк Дмитрий Игоревич
-// тестовое в компанию work-mate
 package main
 
 import (
@@ -9,6 +7,8 @@ import (
 	"github.com/eragon-mdi/ksu/internal/repository"
 	"github.com/eragon-mdi/ksu/internal/server/routes"
 	"github.com/eragon-mdi/ksu/internal/service"
+	"github.com/eragon-mdi/ksu/internal/service/executor"
+	taskstate "github.com/eragon-mdi/ksu/internal/service/task_state"
 	"github.com/eragon-mdi/ksu/pkg/config"
 	applog "github.com/eragon-mdi/ksu/pkg/log"
 	"github.com/eragon-mdi/ksu/pkg/log/clickhouse"
@@ -26,12 +26,14 @@ func main() {
 	clickH := clickhouse.New(cfg)
 	applog.SetDefaultBaseLogger(cfg, clickH)
 
-	fakeStorage, err := storage.Get()
+	stor, err := storage.Get(cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
-	r := repository.New(fakeStorage)
-	s := service.New(cfg, r)
+	r := repository.New(stor)
+	ts := taskstate.New(r)
+	e := executor.New(cfg, ts)
+	s := service.New(cfg, r, e, ts)
 	h := handlers.New(s)
 
 	//
@@ -45,4 +47,5 @@ func main() {
 
 	serv.GracefulShutdown()
 	clickH.GracefulShutdown()
+	storage.GracefulShutdown()
 }

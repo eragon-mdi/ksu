@@ -3,10 +3,42 @@ services:
     build:
       context: .
       dockerfile: ./docker/Dockerfile.app-task
+    volumes:
+      - ./migrate:/migrate
     ports:
       - ${SERVER_PORT}:8080
+    networks:
+      - bridge_app_db
+      - bridge_app_clickhouse
     depends_on:
-      - clickhouse
+      clickhouse:
+        condition: service_started
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:17.5
+    shm_size: 128mb
+    #volumes:
+      #- ./storage:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=${STORAGE_USER}
+      - POSTGRES_PASSWORD=${STORAGE_PASS}
+      - POSTGRES_DB=${STORAGE_DB}
+    networks:
+      - bridge_app_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    
+  adminer:
+    image: adminer
+    ports:
+      - 10000:8080
+    networks:
+      - bridge_app_db
       
   clickhouse:
     image: clickhouse/clickhouse-server:25.5-alpine
@@ -16,6 +48,8 @@ services:
     ports:
       - 8123:8123
       - 9000:9000
+    networks:
+      - bridge_app_clickhouse
   
   tabix:
     image: spoonest/clickhouse-tabix-web-client
@@ -25,3 +59,10 @@ services:
       - 8124:80
     depends_on:
       - clickhouse
+
+
+networks:
+  bridge_app_clickhouse:
+    driver: bridge
+  bridge_app_db:
+    driver: bridge

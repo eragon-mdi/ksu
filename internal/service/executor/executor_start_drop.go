@@ -3,15 +3,18 @@ package executor
 import (
 	"context"
 	"log/slog"
+	"reflect"
 
 	entity "github.com/eragon-mdi/ksu/internal/entity/task"
 	"github.com/eragon-mdi/ksu/pkg/apperrors"
 	applog "github.com/eragon-mdi/ksu/pkg/log"
 )
 
-type Executer interface {
-	StartNewTask(context.Context, chan struct{}, entity.Task) context.CancelFunc
-	DropTask(context.Context, string)
+type TaskState interface {
+	Advanced(context.Context, entity.Task) entity.Task
+	Failed(context.Context, entity.Task) entity.Task
+	Result(entity.Task) (entity.Task, error)
+	Duration(entity.Task) entity.Task
 }
 
 // Дроп таски "мягкий", так как HardIOBoundWork запускается в этом же процессе и не имеет контекса (по ТЗ явно прописано не было)
@@ -22,6 +25,7 @@ func (e executor) DropTask(ctx context.Context, key string) {
 	cancelCtxFunc, ok := e.cancels.Get(key)
 	if !ok {
 		l.Warn(ErrInvalidKey.Error())
+		return
 	}
 
 	cancelCtxFunc()
@@ -77,12 +81,19 @@ func (e executor) StartNewTask(c context.Context, syncCh chan struct{}, task ent
 			// Тут есть ещё 2 варианта:
 			// - если задача поддерживает ctx, то можно его прокинуть, тогда и ждать ненужного результата нет необходимости
 			// - можно вынести HardIOBoundWork в отдельную компилируемую программу и вызывать как exec.CommandContext()
-			result, err := HardIOBoundWork(nil)
+			r, err := HardIOBoundWork(nil)
 			if err != nil { //cancel()
 				l.Error("executor: go-io-task: task completed with err", slog.Any("cause", err))
 				return
 			}
-			l.Debug("executor: go-io-task: task completed", slog.Any("result", result))
+			l.Debug("executor: go-io-task: task completed", slog.Any("result", r))
+
+			result, ok := r.(entity.ResultType)
+			if !ok {
+				l.Warn("executor: go-io-task: task result type no assertion entity.ResultType",
+					slog.Any("result", r),
+					slog.String("actual_type", reflect.TypeOf(r).String()))
+			}
 
 			data <- result
 		}()

@@ -1,4 +1,4 @@
-# Тестовое задание в work-mate
+# Мини пет проект по новым технологиям
 [![Go Report Card](https://goreportcard.com/badge/github.com/eragon-mdi/ksu)](https://goreportcard.com/report/github.com/eragon-mdi/ksu)
 
 ## Запуск сервера
@@ -14,11 +14,7 @@ docker compose down
 2. Сборка с помощью `make`
 ```bash
 make rebuild
-```
-3. Запуск вручную
-```bash
-go mod tidy # go mod download
-go run cmd/task/main.go
+make restart
 ```
 
 ### Конфиги в `config/config.yaml` 
@@ -32,10 +28,30 @@ server:                     # Данные настройки не обязат�
 logger:
   handler: "json"           # Формат логов: "json" или "text"
   level: "debug"            # debug, info, warn, error
-  output: "internal"        # Пока что поддерживается только internal - во внутрений stdout контейнера
+  output_internal: false
 
 app:
   semaphore: 16             # Кол-во одновременных задач (IO-bound)
+
+clickhouse:                 # Чтобы писалиьс логи в clickhouse logger.output_internal = false
+  address: clickhouse:9000
+  username: ksu
+  password: secret
+  try_connection_perod: "3s"
+  connection_attempts: 5
+  batch_size: 10
+  batch_inteval: "1m"
+
+storage:    # Поддерживается in-memmory (fake) и sql хранилища, для добавления помимо postgres, добавить в фабрику storage
+  type: postgres # internal | postgres
+  host: db
+  port: 5432
+  user: app
+  password: 123
+  name: app_db
+  ssl_mode: disable
+  need_migrate: true
+  migaret_src: file:///migrate
 ```
 
 ### Дополнительно можно использовать pprof для проверки течи горутин:
@@ -135,3 +151,6 @@ HTTP/1.1 204 No Content
 - `internal/repository` Данный репозиторий реализован под fake хранилище, так что в случае замены на реальную БД, необходимо изменить логику;
 - I/O задача-заглушка в `internal/service/executor/hardIOboundwork.go`. Задача выполняется строго 3-5 минут;
 - Семафор ограничивает кол-во одновременно исполняемых задач.
+- Логи либо во stdout контейнера, либо в clickhouse
+- Хранилище либо in-memmory, либо sql (пока что только postgres, остальные через фабрику)
+- Миграции в /migrate

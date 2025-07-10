@@ -6,11 +6,6 @@ import (
 	entity "github.com/eragon-mdi/ksu/internal/entity/task"
 )
 
-type StateTransitioner interface {
-	Advanced(context.Context, entity.Task) entity.Task
-	Failed(context.Context, entity.Task) entity.Task
-}
-
 func (ts taskState) Advanced(ctx context.Context, t entity.Task) entity.Task {
 	next, ok := ts.transitions[t.Status]
 	if ok {

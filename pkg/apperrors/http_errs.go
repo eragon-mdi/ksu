@@ -1,6 +1,7 @@
 package apperrors
 
 var (
+	NotFound           = newAppErr("not found")
 	ErrInternal        = newAppErr("internal server err")
 	ErrInvalidID       = newAppErr("invalid id")
 	ErrInvalidData     = newAppErr("invalid data")
