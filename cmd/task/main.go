@@ -55,4 +55,5 @@ func main() {
 
 	serv.GracefulShutdown()
 	clickH.GracefulShutdown()
+	storage.GracefulShutdown()
 }

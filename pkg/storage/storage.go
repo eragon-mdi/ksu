@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"log/slog"
 	"sync"
 
 	"github.com/eragon-mdi/ksu/internal/repository"
@@ -15,13 +16,13 @@ type storageImplement interface {
 type Init interface {
 	Connect(config.Config) error
 	Migrate(config.Config) error
+	Shutdown() error
 }
 
 var (
 	once sync.Once
 	stor storageImplement
 
-	// fabric = map[string]InitFuncs{}
 	fabric = map[string]Init{}
 )
 
@@ -30,22 +31,16 @@ func Get(cfg config.Config) (storageImplement, error) {
 	once.Do(func() {
 		strCfg := cfg.Storage()
 
-		//var f *InitFuncs
-		// f, err = getStorageByType(strCfg.Type())
 		stor, err = getStorageByType(strCfg.Type())
 		if err != nil {
 			return
 		}
 
-		//storage, err = f.Connect(cfg)
 		err = stor.Connect(cfg)
 		if err != nil {
 			return
 		}
 
-		//if cfg.Storage().NeedMigrate() && f.Migrate != nil {
-		//	err = f.Migrate(cfg)
-		//}
 		if cfg.Storage().NeedMigrate() {
 			err = stor.Migrate(cfg)
 		}
@@ -55,4 +50,10 @@ func Get(cfg config.Config) (storageImplement, error) {
 	}
 
 	return stor, err
+}
+
+func GracefulShutdown() {
+	if err := stor.Shutdown(); err != nil {
+		slog.Default().Error("error ocured on storage drop connection", slog.Any("cause", err))
+	}
 }

@@ -13,18 +13,8 @@ type postrgres struct {
 }
 
 func init() {
-	//var postrgres *postrgres
-
-	//register("postgres", &InitFuncs{
-	//	Connect: connectPostgresAdapter,
-	//	Migrate: sqlstorage.MigratePostgres,
-	//})
 	register("postgres", &postrgres{})
 }
-
-//	func connectPostgresAdapter(cfg config.Config) (storageImplement, error) {
-//		return sqlstorage.ConnectPostgres(cfg)
-//	}
 
 func (s *postrgres) Connect(cfg config.Config) (err error) {
 	s.DB, err = sqlstorage.ConnectPostgres(cfg)
@@ -33,4 +23,13 @@ func (s *postrgres) Connect(cfg config.Config) (err error) {
 
 func (s *postrgres) Migrate(cfg config.Config) error {
 	return sqlstorage.MigratePostgres(cfg, s.DB)
+}
+
+// need for switch type in repo
+func (s *postrgres) SQLDB() *sql.DB {
+	return s.DB
+}
+
+func (s *postrgres) Shutdown() error {
+	return s.Close()
 }

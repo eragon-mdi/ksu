@@ -4,15 +4,15 @@ import (
 	"time"
 )
 
-type TaskStatusType = int
-
 const (
-	_ = iota
-	STATUS_PENDING
-	STATUS_RUNNING
-	STATUS_COMPLETED
-	STATUS_FAILED
+	STATUS_NULL      = "null"
+	STATUS_PENDING   = "pending"
+	STATUS_RUNNING   = "running"
+	STATUS_COMPLETED = "completed"
+	STATUS_FAILED    = "failed"
 )
+
+type TaskStatusType = string
 
 // model: service - repository
 type Task struct {
@@ -22,15 +22,15 @@ type Task struct {
 	StartedAt time.Time
 }
 
-type ResultType = any
+type ResultType = string
 type TaskResult struct {
 	Result ResultType `json:"result"`
 }
 
 type TaskStatus struct {
-	Status    int           `json:"-"`
-	CreatedAt time.Time     `json:"created_at"`
-	Duration  time.Duration `json:"duration"`
+	Status    TaskStatusType `json:"-"`
+	CreatedAt time.Time      `json:"created_at"`
+	Duration  time.Duration  `json:"duration"`
 }
 
 // DTO: handler - service

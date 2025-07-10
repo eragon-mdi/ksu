@@ -7,7 +7,7 @@ server:
 logger:
   handler: json
   level: debug
-  output_internal: true # false
+  output_internal: false
 
 app:
   semaphore: 16
@@ -22,7 +22,7 @@ clickhouse:
   batch_inteval: "1m"
 
 storage:
-  type: internal # internal  # postgres
+  type: postgres # internal | postgres
   host: db
   port: 5432
   user: app

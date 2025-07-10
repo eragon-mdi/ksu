@@ -20,7 +20,7 @@ func New(r Repository) taskStateImplement {
 	return &taskState{
 		repository: r,
 		transitions: map[entity.TaskStatusType]entity.TaskStatusType{
-			0:                     entity.STATUS_PENDING,
+			entity.STATUS_NULL:    entity.STATUS_PENDING,
 			entity.STATUS_PENDING: entity.STATUS_RUNNING,
 			entity.STATUS_RUNNING: entity.STATUS_COMPLETED,
 		},

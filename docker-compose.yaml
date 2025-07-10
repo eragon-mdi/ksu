@@ -33,6 +33,13 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    
+  adminer:
+    image: adminer
+    ports:
+      - 10000:8080
+    networks:
+      - bridge_app_db
       
   clickhouse:
     image: clickhouse/clickhouse-server:25.5-alpine

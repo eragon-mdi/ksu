@@ -14,7 +14,7 @@ type Repository interface {
 	UpdateTaskInfo(entity.Task) error
 }
 
-var statusMapResult = map[int]any{
+var statusMapResult = map[entity.TaskStatusType]entity.ResultType{
 	entity.STATUS_PENDING: "no result, task pending",
 	entity.STATUS_RUNNING: "no result, task runnibg",
 	entity.STATUS_FAILED:  "no result, task failed",

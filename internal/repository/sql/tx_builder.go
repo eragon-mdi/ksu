@@ -5,18 +5,6 @@ import (
 	"database/sql"
 )
 
-//
-//const (
-//	LevelDefault IsolationLevel = iota
-//	LevelReadUncommitted
-//	LevelReadCommitted
-//	LevelWriteCommitted
-//	LevelRepeatableRead
-//	LevelSnapshot
-//	LevelSerializable
-//	LevelLinearizable
-//)
-
 type tx interface {
 	begin(func(*sql.Tx) error) error
 
@@ -38,19 +26,19 @@ type txStruct struct {
 	s SQLStorage
 }
 
-func (s SQLStorage) defaultTx(ctx context.Context) tx {
+func (s *sqlRepository) defaultTx(ctx context.Context) tx {
 	return &txStruct{
 		options: &sql.TxOptions{
 			Isolation: sql.LevelDefault,
 			ReadOnly:  false,
 		},
-		s:   s,
+		s:   s.storage,
 		ctx: ctx,
 	}
 }
 
 func (t *txStruct) begin(f func(*sql.Tx) error) (err error) {
-	t.Tx, err = t.s.BeginTx(t.ctx, t.options)
+	t.Tx, err = t.s.SQLDB().BeginTx(t.ctx, t.options)
 	if err != nil {
 		return err
 	}
@@ -99,27 +87,3 @@ func (tx *txStruct) lvlLinearizable() tx {
 	tx.options.Isolation = sql.LevelLinearizable
 	return tx
 }
-
-/*
-func (s SQLStorage) withTx(ctx context.Context, f func(*sql.Tx) error, ro bool, iso ...sql.IsolationLevel) error {
-	tx, err := s.BeginTx(ctx, &sql.TxOptions{
-		Isolation: iso,
-		ReadOnly:  ro,
-	})
-
-	if err != nil {
-		return err
-	}
-
-	defer func() {
-		if err == nil {
-			tx.Commit()
-		} else {
-			tx.Rollback()
-		}
-	}()
-
-	err = f(tx)
-	return err
-}
-*/

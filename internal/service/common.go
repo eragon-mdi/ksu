@@ -19,5 +19,6 @@ func (s service) mapTasksToResponse(tasks []entity.Task) ([]entity.TaskResponse,
 		task = s.taskState.Duration(task)
 		res = append(res, task.Response())
 	}
+
 	return res, nil
 }

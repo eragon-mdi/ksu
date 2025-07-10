@@ -3,6 +3,7 @@ package executor
 import (
 	"context"
 	"log/slog"
+	"reflect"
 
 	entity "github.com/eragon-mdi/ksu/internal/entity/task"
 	"github.com/eragon-mdi/ksu/pkg/apperrors"
@@ -80,12 +81,19 @@ func (e executor) StartNewTask(c context.Context, syncCh chan struct{}, task ent
 			// Тут есть ещё 2 варианта:
 			// - если задача поддерживает ctx, то можно его прокинуть, тогда и ждать ненужного результата нет необходимости
 			// - можно вынести HardIOBoundWork в отдельную компилируемую программу и вызывать как exec.CommandContext()
-			result, err := HardIOBoundWork(nil)
+			r, err := HardIOBoundWork(nil)
 			if err != nil { //cancel()
 				l.Error("executor: go-io-task: task completed with err", slog.Any("cause", err))
 				return
 			}
-			l.Debug("executor: go-io-task: task completed", slog.Any("result", result))
+			l.Debug("executor: go-io-task: task completed", slog.Any("result", r))
+
+			result, ok := r.(entity.ResultType)
+			if !ok {
+				l.Warn("executor: go-io-task: task result type no assertion entity.ResultType",
+					slog.Any("result", r),
+					slog.String("actual_type", reflect.TypeOf(r).String()))
+			}
 
 			data <- result
 		}()

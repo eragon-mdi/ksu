@@ -1,11 +1,9 @@
 package sqlrepo
 
-import (
-	"database/sql"
-)
+import "database/sql"
 
-type SQLStorage struct {
-	*sql.DB
+type SQLStorage interface {
+	SQLDB() *sql.DB
 }
 
 type sqlRepository struct {

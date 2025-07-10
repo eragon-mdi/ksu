@@ -53,7 +53,7 @@ func (r fakeRepository) GetTaskStatusById(id string) (entity.Task, error) {
 func (r fakeRepository) UpdateTaskInfo(task entity.Task) error {
 	err := r.storage.UpdateTask(task)
 	if err != nil {
-		return errors.Join(fmt.Errorf("%w (%d %v)\n%w", ErrUpdateTaskInfo, task.Status, task.Result, err))
+		return errors.Join(fmt.Errorf("%w (%s %v)\n%w", ErrUpdateTaskInfo, task.Status, task.Result, err))
 	}
 	return nil
 }
